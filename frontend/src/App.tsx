@@ -6,11 +6,14 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 
 type CalculationResult = {
   monthlyPCB: number;
+  baseMonthlyPcb: number;
+  additionalBonusPcb: number;
   netSalary: number;
   epf: number;
   socso: number;
   eis: number;
   totalDeductions: number;
+  currentMonthGross?: number;
 };
 
 export default function App() {
@@ -22,7 +25,7 @@ export default function App() {
   const [error, setError] = useState('');
 
   const totalIncome = useMemo(
-    () => (salary ?? 0) + (allowance ?? 0) + (bonus ?? 0),
+    () => (salary ? (salary*12) : 0) + (allowance ?? 0) + (bonus ?? 0),
     [salary, allowance, bonus],
   );
 
@@ -116,7 +119,7 @@ export default function App() {
               <div className="grid">
                 <div className="col-12 md:col-6">
                   <div className="field mb-0">
-                    <label htmlFor="allowance">Allowance (RM)</label>
+                    <label htmlFor="allowance">Allowance (Recurring / RM)</label>
                     <InputNumber
                       id="allowance"
                       value={allowance}
@@ -132,7 +135,7 @@ export default function App() {
 
                 <div className="col-12 md:col-6">
                   <div className="field mb-0">
-                    <label htmlFor="bonus">Bonus (RM)</label>
+                    <label htmlFor="bonus">Bonus (One-off / RM)</label>
                     <InputNumber
                       id="bonus"
                       value={bonus}
@@ -203,6 +206,10 @@ export default function App() {
                 <article className="deduction-card">
                   <h3>Deductions Breakdown</h3>
                   <div className="deduction-row">
+                    <span>Gross This Month</span>
+                    <strong>RM {(result.currentMonthGross ?? totalIncome).toFixed(2)}</strong>
+                  </div>
+                  <div className="deduction-row">
                     <span>EPF</span>
                     <strong>RM {result.epf.toFixed(2)}</strong>
                   </div>
@@ -215,7 +222,15 @@ export default function App() {
                     <strong>RM {result.eis.toFixed(2)}</strong>
                   </div>
                   <div className="deduction-row">
-                    <span>PCB</span>
+                    <span>PCB (Base)</span>
+                    <strong>RM {result.baseMonthlyPcb.toFixed(2)}</strong>
+                  </div>
+                  <div className="deduction-row">
+                    <span>PCB (Bonus One-off)</span>
+                    <strong>RM {result.additionalBonusPcb.toFixed(2)}</strong>
+                  </div>
+                  <div className="deduction-row">
+                    <span>PCB (Total)</span>
                     <strong>RM {result.monthlyPCB.toFixed(2)}</strong>
                   </div>
                   <div className="deduction-row total">

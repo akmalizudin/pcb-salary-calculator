@@ -147,9 +147,23 @@ body {
   margin-top: 1rem;
 }
 
-.calculate-btn,
+.calculate-btn {
+  border-radius: 12px;
+}
 .reset-btn {
   border-radius: 12px;
+  border: 1px solid var(--line);
+  color: #14b8a6;
+}
+
+.reset-btn.p-button.p-button-text {
+  color: var(--brand);
+}
+
+.reset-btn.p-button.p-button-text:enabled:hover,
+.reset-btn.p-button.p-button-text:enabled:focus {
+  color: var(--brand-strong);
+  background: rgba(15, 118, 110, 0.1);
 }
 
 .calculate-btn.p-button {
