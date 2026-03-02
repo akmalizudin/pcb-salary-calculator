@@ -1,68 +1,319 @@
+/* PrimeReact */
+@import 'primeflex/primeflex.css';
+@import 'primeicons/primeicons.css';
+@import 'primereact/resources/themes/lara-light-indigo/theme.css';
+@import 'primereact/resources/primereact.min.css';
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --bg: #f6f8f4;
+  --surface: #ffffff;
+  --surface-soft: #ecf3ed;
+  --text: #0f1720;
+  --muted: #4b5563;
+  --line: #d6e0d8;
+  --brand: #0f766e;
+  --brand-strong: #115e59;
+  --accent: #f59e0b;
+  --success: #15803d;
+  --danger: #b91c1c;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  font-family: 'Space Grotesk', 'Segoe UI', 'Trebuchet MS', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 520px at -15% -20%, #99f6e4 0%, transparent 55%),
+    radial-gradient(980px 480px at 110% 0%, #fde68a 0%, transparent 50%),
+    var(--bg);
+}
+
+#root {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.app-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2rem 1rem 1.5rem;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.hero-section {
+  text-align: center;
+  margin-bottom: 1.4rem;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ddf6f2;
+  color: #0f766e;
+  border: 1px solid #97d9d1;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.hero-section h1 {
+  margin: 0.8rem 0 0.35rem;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.hero-section p {
+  max-width: 640px;
+  margin: 0 auto;
+  font-size: 1.02rem;
+  color: var(--muted);
+}
+
+.app-content {
+  margin: 0;
+}
+
+.surface-card.p-card {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
+  box-shadow: 0 12px 35px rgba(15, 23, 32, 0.08);
+}
+
+.surface-card .p-card-body {
+  padding: 1.1rem;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.card-title-row h2,
+.summary-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+.income-pill {
+  background: var(--surface-soft);
+  color: var(--brand-strong);
+  border: 1px solid #cbe6d6;
+  border-radius: 999px;
+  padding: 0.3rem 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.calculator-form label {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.p-inputtext,
+.p-inputnumber-input {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fefefe;
+}
+
+.p-inputtext:enabled:focus,
+.p-inputnumber-input:enabled:focus {
+  border-color: #2a9d90;
+  box-shadow: 0 0 0 0.15rem rgba(15, 118, 110, 0.12);
+}
+
+.action-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.calculate-btn {
+  border-radius: 12px;
+}
+.reset-btn {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  color: #14b8a6;
+}
+
+.reset-btn.p-button.p-button-text {
+  color: var(--brand);
+}
+
+.reset-btn.p-button.p-button-text:enabled:hover,
+.reset-btn.p-button.p-button-text:enabled:focus {
+  color: var(--brand-strong);
+  background: rgba(15, 118, 110, 0.1);
+}
+
+.calculate-btn.p-button {
+  background: linear-gradient(135deg, var(--brand) 0%, #14b8a6 100%);
+  border: none;
+}
+
+.calculate-btn.p-button:enabled:hover {
+  background: linear-gradient(135deg, var(--brand-strong) 0%, var(--brand) 100%);
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.1rem;
+}
+
+.loading-wrap .p-progress-spinner {
+  width: 42px;
+  height: 42px;
+}
+
+.error {
+  margin-top: 1rem;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.required-field::after {
+  content: ' *';
+  color: var(--danger);
+}
+
+.summary-card {
+  height: 100%;
+}
+
+.empty-state {
+  margin-top: 1rem;
+  border: 1px dashed #cdd9d1;
+  border-radius: 14px;
+  background: #f8fbf9;
+  text-align: center;
+  padding: 1.15rem 1rem;
+}
+
+.empty-state i {
+  font-size: 1.5rem;
+  color: var(--brand);
+}
+
+.empty-state p {
+  margin: 0.6rem 0 0;
+  color: #64748b;
+}
+
+.result-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.stat-card {
+  border-radius: 14px;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stat-card span {
+  font-weight: 600;
+  color: #334155;
+}
+
+.stat-card strong {
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.stat-card--accent {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.stat-card--green {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #14532d;
+}
+
+.deduction-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: #ffffff;
+}
+
+.deduction-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.96rem;
+}
+
+.deduction-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #edf1ef;
+}
+
+.deduction-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.deduction-row.total {
+  margin-top: 0.15rem;
+  font-weight: 700;
+  color: #0f1720;
+}
+
+.app-footer {
+  text-align: center;
+  margin-top: 1.2rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid #d5e4da;
+  color: #5f6f67;
+}
+
+@media (max-width: 991px) {
+  .app-shell {
+    padding-top: 1.25rem;
   }
-  a:hover {
-    color: #747bff;
+
+  .card-title-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@media (max-width: 640px) {
+  .action-row {
+    flex-direction: column;
+  }
+
+  .calculate-btn,
+  .reset-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
