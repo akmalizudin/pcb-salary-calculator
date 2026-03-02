@@ -1,20 +1,34 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import { ProgressSpinner } from 'primereact/progressspinner';
 
+type CalculationResult = {
+  monthlyPCB: number;
+  netSalary: number;
+  epf: number;
+  socso: number;
+  eis: number;
+  totalDeductions: number;
+};
+
 export default function App() {
   const [salary, setSalary] = useState<number | null>(null);
   const [allowance, setAllowance] = useState<number | null>(null);
   const [bonus, setBonus] = useState<number | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<CalculationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const totalIncome = useMemo(
+    () => (salary ?? 0) + (allowance ?? 0) + (bonus ?? 0),
+    [salary, allowance, bonus],
+  );
+
   const calculatePCB = async () => {
     if (!salary || salary <= 0) {
-      setError('Please enter a valid salary');
+      setError('Please enter a valid monthly salary');
       return;
     }
 
@@ -22,22 +36,25 @@ export default function App() {
     setError('');
     setResult(null);
 
-    const url = 'http://localhost:3000/pcb/calculate';
-
     try {
-      const res = await fetch(url, {
+      const res = await fetch('http://localhost:3000/pcb/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthlySalary: salary }),
+        body: JSON.stringify({
+          monthlySalary: salary,
+          allowance: allowance ?? 0,
+          bonus: bonus ?? 0,
+        }),
       });
 
-      if (!res.ok) throw new Error('API Error');
+      if (!res.ok) {
+        throw new Error('API error');
+      }
 
-      const data = await res.json();
+      const data: CalculationResult = await res.json();
       setResult(data);
-      console.log(data);
-    } catch (err) {
-      setError('Failed to calculate PCB. Please check backend.');
+    } catch {
+      setError('Failed to calculate PCB. Please check backend connection.');
     } finally {
       setLoading(false);
     }
@@ -52,178 +69,171 @@ export default function App() {
   };
 
   return (
-    <div className="grid justify-content-center m-4">
-      <div className="col-12 md:col-8">
-        <Card title="PCB Salary Calculator">
-          <div className="field">
+    <main className="app-shell">
+      <section className="hero-section">
+        <div className="hero-chip">
+          <i className="pi pi-bolt"></i>
+          <span>Malaysian Payroll Companion</span>
+        </div>
+
+        <h1>PCB Salary Calculator</h1>
+        <p>
+          Fast monthly tax estimates for PCB, EPF, SOCSO, and EIS in one streamlined view.
+        </p>
+      </section>
+
+      <section className="grid app-content">
+        <div className="col-12 lg:col-7">
+          <Card className="surface-card calculator-card">
+            <div className="card-title-row">
+              <h2>Income Inputs</h2>
+              <span className="income-pill">Total Income: RM {totalIncome.toFixed(2)}</span>
+            </div>
+
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
+              className="calculator-form"
+              onSubmit={(event) => {
+                event.preventDefault();
                 calculatePCB();
               }}
             >
-              <label htmlFor="salary">Monthly Salary (RM)</label>
-
-              <InputNumber
-                id="salary"
-                value={salary}
-                onValueChange={(e) => setSalary(e.value ?? null)}
-                mode="currency"
-                currency="MYR"
-                locale="en-MY"
-                placeholder="Enter salary"
-                className="inputtext-lg w-full"
-                onKeyDown={(e) => e.key === 'Enter' && calculatePCB()}
-              />
+              <div className="field">
+                <label htmlFor="salary" className="required-field">
+                  Monthly Salary (RM)
+                </label>
+                <InputNumber
+                  id="salary"
+                  value={salary}
+                  onChange={(event) => setSalary(event.value ?? null)}
+                  mode="currency"
+                  currency="MYR"
+                  locale="en-MY"
+                  placeholder="e.g. 4500"
+                  className="w-full"
+                />
+              </div>
 
               <div className="grid">
-                {/* for left side */}
-                <div className="col-6 py-3">
-                  <label htmlFor="allowance">Allowance (RM)</label>
-
-                  <InputNumber
-                    id="allowance"
-                    value={allowance}
-                    onValueChange={(e) => setAllowance(e.value ?? null)}
-                    mode="currency"
-                    currency="MYR"
-                    locale="en-MY"
-                    placeholder="Enter allowance"
-                    className="inputtext-lg w-full"
-                    onKeyDown={(e) => e.key === 'Enter' && calculatePCB()}
-                  />
+                <div className="col-12 md:col-6">
+                  <div className="field mb-0">
+                    <label htmlFor="allowance">Allowance (RM)</label>
+                    <InputNumber
+                      id="allowance"
+                      value={allowance}
+                      onChange={(event) => setAllowance(event.value ?? null)}
+                      mode="currency"
+                      currency="MYR"
+                      locale="en-MY"
+                      placeholder="Optional"
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
-                {/* for right side */}
-                <div className="col-6 py-3">
-                  <label htmlFor="allowance">Bonus (RM)</label>
-
-                  <InputNumber
-                    id="bonus"
-                    value={bonus}
-                    onValueChange={(e) => setBonus(e.value ?? null)}
-                    mode="currency"
-                    currency="MYR"
-                    locale="en-MY"
-                    placeholder="Enter bonus"
-                    className="inputtext-lg w-full"
-                    onKeyDown={(e) => e.key === 'Enter' && calculatePCB()}
-                  />
+                <div className="col-12 md:col-6">
+                  <div className="field mb-0">
+                    <label htmlFor="bonus">Bonus (RM)</label>
+                    <InputNumber
+                      id="bonus"
+                      value={bonus}
+                      onChange={(event) => setBonus(event.value ?? null)}
+                      mode="currency"
+                      currency="MYR"
+                      locale="en-MY"
+                      placeholder="Optional"
+                      className="w-full"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              <div className="action-row">
+                <Button
+                  type="submit"
+                  label="Calculate PCB"
+                  icon="pi pi-calculator"
+                  className="calculate-btn"
+                  disabled={loading || !salary || salary <= 0}
+                />
+                <Button
+                  type="button"
+                  label="Reset"
+                  icon="pi pi-refresh"
+                  text
+                  className="reset-btn"
+                  onClick={resetForm}
+                  disabled={loading}
+                />
               </div>
             </form>
-          </div>
 
-          <div className="flex gap-3">
-            <Button
-              rounded
-              label="Calculate"
-              icon="pi pi-check"
-              className="my-3"
-              onClick={calculatePCB}
-              disabled={loading}
-            />
-
-            <Button
-              text
-              label="Reset"
-              icon="pi pi-refresh"
-              className="my-3"
-              onClick={resetForm}
-              disabled={loading}
-            />
-          </div>
-
-          {loading && (
-            <div className="flex justify-content-center mt-3">
-              <ProgressSpinner />
-            </div>
-          )}
-
-          {error && <p className="error mt-3">{error}</p>}
-
-          {result && (
-            <div className="grid">
-              <div className="col-6">
-                {/* <Card>
-                  <p>
-                    <strong>Annual Salary:</strong> RM {result.annualSalary}
-                  </p>
-                  <p>
-                    <strong>Chargeable Income:</strong> RM {result.chargeableIncome}
-                  </p>
-                  <p>
-                    <strong>Annual Tax:</strong> RM {result.annualTax}
-                  </p>
-                  <p>
-                    <strong>Monthly PCB:</strong> RM {result.monthlyPCB}
-                  </p>
-                </Card> */}
-                <Card className="text-center monthly-pcb-card no-padding-card">
-                  <h4 className="text-red-500 mb-2">Monthly PCB</h4>
-                  <h2 className="text-red-600">RM {result.monthlyPCB.toFixed(2)}</h2>
-                </Card>
+            {loading && (
+              <div className="loading-wrap">
+                <ProgressSpinner strokeWidth="5" />
               </div>
+            )}
 
-              <div className="col-6">
-                <Card className="text-center nett-salary-card no-padding-card">
-                  <h4 className="text-red-500 mb-2">Net Salary</h4>
-                  <h2 className="text-red-600">RM {result.monthlyPCB.toFixed(2)}</h2>
-                </Card>
+            {error && <p className="error">{error}</p>}
+          </Card>
+        </div>
+
+        <div className="col-12 lg:col-5">
+          <Card className="surface-card summary-card">
+            <h2>Calculation Summary</h2>
+
+            {!result && !loading && (
+              <div className="empty-state">
+                <i className="pi pi-chart-bar"></i>
+                <p>Enter your salary and run calculation to see deductions and net pay.</p>
               </div>
-              <div className="col-12">
-                <Card className="text-center no-padding-card">
-                  <h4 className="text-red-500 mb-3">Monthly Deductions</h4>
+            )}
 
-                  <div className="flex justify-content-between mx-3">
-                    <div className="flex flex-column">
-                      <span>EPF</span>
-                      <span className="font-bold" style={{ fontSize: '18px', color: '#f71212ff' }}>
-                        RM {result.epf.toFixed(2)}
-                      </span>
-                      <span style={{ fontSize: '12px' }}>11%</span>
-                    </div>
+            {result && (
+              <div className="result-grid">
+                <article className="stat-card stat-card--accent">
+                  <span>Monthly PCB</span>
+                  <strong>RM {result.monthlyPCB.toFixed(2)}</strong>
+                </article>
 
-                    <div className="flex flex-column">
-                      <span>SOCSO</span>
-                      <span className="font-bold" style={{ fontSize: '18px', color: '#0070f9ff' }}>
-                        RM {result.socso.toFixed(2)}
-                      </span>
-                      <span style={{ fontSize: '12px' }}>0.5%</span>
-                    </div>
+                <article className="stat-card stat-card--green">
+                  <span>Net Salary</span>
+                  <strong>RM {result.netSalary.toFixed(2)}</strong>
+                </article>
 
-                    <div className="flex flex-column">
-                      <span>EIS</span>
-                      <span
-                        className="font-bold"
-                        style={{ fontSize: '18px', color: '#15803cd8' }}
-                        >
-                          RM {result.eis.toFixed(2)}
-                      </span>
-                      <span style={{ fontSize: '12px' }}>0.2%</span>
-                    </div>
-
-                    <div className="flex flex-column">
-                      <span>PCB</span>
-                      <span className="font-bold" style={{ fontSize: '18px', color: '#f9b406ff' }}>
-                        RM {result.monthlyPCB.toFixed(2)}
-                      </span>
-                      <span style={{ fontSize: '12px' }}>1.0%</span>
-                    </div>
+                <article className="deduction-card">
+                  <h3>Deductions Breakdown</h3>
+                  <div className="deduction-row">
+                    <span>EPF</span>
+                    <strong>RM {result.epf.toFixed(2)}</strong>
                   </div>
-
-                  <div className="flex flex-column">
-                    <span>Total</span>
-                    <span className="font-bold" style={{ fontSize: '18px' }}>
-                      RM {result.totalDeductions.toFixed(2)}
-                    </span>
+                  <div className="deduction-row">
+                    <span>SOCSO</span>
+                    <strong>RM {result.socso.toFixed(2)}</strong>
                   </div>
-                </Card>
+                  <div className="deduction-row">
+                    <span>EIS</span>
+                    <strong>RM {result.eis.toFixed(2)}</strong>
+                  </div>
+                  <div className="deduction-row">
+                    <span>PCB</span>
+                    <strong>RM {result.monthlyPCB.toFixed(2)}</strong>
+                  </div>
+                  <div className="deduction-row total">
+                    <span>Total Deductions</span>
+                    <strong>RM {result.totalDeductions.toFixed(2)}</strong>
+                  </div>
+                </article>
               </div>
-            </div>
-          )}
-        </Card>
-      </div>
-    </div>
+            )}
+          </Card>
+        </div>
+      </section>
+
+      <footer className="app-footer">
+        <small>
+          &copy; 2026 PCBCalculator.my. Independent calculator, not affiliated with LHDN Malaysia.
+        </small>
+      </footer>
+    </main>
   );
 }
