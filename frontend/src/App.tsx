@@ -76,7 +76,7 @@ export default function App() {
       <section className="hero-section">
         <div className="hero-chip">
           <i className="pi pi-bolt"></i>
-          <span>Malaysian Payroll Companion</span>
+          <span>Malaysia Salary & PCB Companion</span>
         </div>
 
         <h1>PCB Salary Calculator</h1>
