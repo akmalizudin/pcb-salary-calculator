@@ -4,14 +4,24 @@ import './index.css';
 import App from './App.tsx';
 import Header from './components/Header.tsx';
 
-type CalculatorTab = 'pcb' | 'epf';
+type CalculatorTab = 'pcb' | 'epf' | 'about';
 
 function Root() {
   const [activeTab, setActiveTab] = useState<CalculatorTab>('pcb');
 
   useEffect(() => {
-    document.body.classList.remove('theme-pcb-body', 'theme-epf-body');
-    document.body.classList.add(activeTab === 'epf' ? 'theme-epf-body' : 'theme-pcb-body');
+    document.body.classList.remove('theme-pcb-body', 'theme-epf-body', 'theme-about-body');
+    if (activeTab === 'epf') {
+      document.body.classList.add('theme-epf-body');
+      return;
+    }
+
+    if (activeTab === 'about') {
+      document.body.classList.add('theme-about-body');
+      return;
+    }
+
+    document.body.classList.add('theme-pcb-body');
   }, [activeTab]);
 
   return (

@@ -1,4 +1,4 @@
-type CalculatorTab = 'pcb' | 'epf';
+type CalculatorTab = 'pcb' | 'epf' | 'about';
 
 type HeaderProps = {
   activeTab: CalculatorTab;
@@ -31,6 +31,15 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
           aria-selected={activeTab === 'epf'}
         >
           EPF Calculator
+        </button>
+        <button
+          type="button"
+          className={`header-tab header-tab-about ${activeTab === 'about' ? 'active' : ''}`}
+          onClick={() => onTabChange('about')}
+          role="tab"
+          aria-selected={activeTab === 'about'}
+        >
+          About
         </button>
       </div>
     </header>
