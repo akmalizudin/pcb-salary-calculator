@@ -25,7 +25,12 @@ export default function App() {
   const [error, setError] = useState('');
 
   const totalIncome = useMemo(
-    () => (salary ? (salary*12) : 0) + (allowance ?? 0) + (bonus ?? 0),
+    () => ((salary ?? 0) + (allowance ?? 0)) * 12 + (bonus ?? 0),
+    [salary, allowance, bonus],
+  );
+
+  const grossThisMonth = useMemo(
+    () => (salary ?? 0) + (allowance ?? 0) + (bonus ?? 0),
     [salary, allowance, bonus],
   );
 
@@ -90,7 +95,7 @@ export default function App() {
           <Card className="surface-card calculator-card">
             <div className="card-title-row">
               <h2>Income Inputs</h2>
-              <span className="income-pill">Total Income: RM {totalIncome.toFixed(2)}</span>
+              <span className="income-pill">Estimated Annual Gross: RM {totalIncome.toFixed(2)}</span>
             </div>
 
             <form
@@ -207,7 +212,7 @@ export default function App() {
                   <h3>Deductions Breakdown</h3>
                   <div className="deduction-row">
                     <span>Gross This Month</span>
-                    <strong>RM {(result.currentMonthGross ?? totalIncome).toFixed(2)}</strong>
+                    <strong>RM {(result.currentMonthGross ?? grossThisMonth).toFixed(2)}</strong>
                   </div>
                   <div className="deduction-row">
                     <span>EPF</span>
