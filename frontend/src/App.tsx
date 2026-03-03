@@ -23,12 +23,22 @@ type PCBResult = {
 };
 
 type EPFResult = {
-  monthlyContribution: number;
-  annualContribution: number;
-  monthlyTakeHomeAfterEPF: number;
+  projectedSavingsAt60: number;
+  totalContributions: number;
+  totalEmployeeContributions: number;
+  totalEmployerContributions: number;
+  estimatedDividends: number;
+  yearsToRetirement: number;
+  salaryMilestones: Array<{
+    age: number;
+    salary: number;
+  }>;
 };
 
 export default function App({ activeTab }: AppProps) {
+  const EPF_EMPLOYEE_CONTRIBUTION_RATE = 0.11;
+  const EPF_EMPLOYER_CONTRIBUTION_RATE = 0.13;
+
   const [salary, setSalary] = useState<number | null>(null);
   const [allowance, setAllowance] = useState<number | null>(null);
   const [bonus, setBonus] = useState<number | null>(null);
@@ -37,7 +47,9 @@ export default function App({ activeTab }: AppProps) {
   const [pcbError, setPcbError] = useState('');
 
   const [epfSalary, setEpfSalary] = useState<number | null>(null);
-  const [epfRate, setEpfRate] = useState<number | null>(11);
+  const [epfIncrement, setEpfIncrement] = useState<number | null>(3);
+  const [epfDividend, setEpfDividend] = useState<number | null>(6);
+  const [epfAge, setEpfAge] = useState<number | null>(null);
   const [epfResult, setEpfResult] = useState<EPFResult | null>(null);
   const [epfError, setEpfError] = useState('');
 
@@ -99,25 +111,79 @@ export default function App({ activeTab }: AppProps) {
       return;
     }
 
-    const rate = (epfRate ?? 0) / 100;
-    if (rate <= 0 || rate > 1) {
-      setEpfError('Please enter a valid EPF rate between 0 and 100');
+    if (!epfAge || epfAge < 16 || epfAge >= 60) {
+      setEpfError('Please enter a valid age between 16 and 59');
       return;
     }
 
-    const monthlyContribution = epfSalary * rate;
+    const incrementRate = (epfIncrement ?? 0) / 100;
+    if (incrementRate < 0 || incrementRate > 1) {
+      setEpfError('Please enter a valid yearly increment between 0% and 100%');
+      return;
+    }
+
+    const dividendRate = (epfDividend ?? 0) / 100;
+    if (dividendRate < 0 || dividendRate > 1) {
+      setEpfError('Please enter a valid yearly dividend between 0% and 100%');
+      return;
+    }
+
+    const monthsToRetirement = (60 - epfAge) * 12;
+    const monthlyDividendRate = Math.pow(1 + dividendRate, 1 / 12) - 1;
+
+    let currentMonthlySalary = epfSalary;
+    let projectedSavings = 0;
+    let totalContributions = 0;
+    let totalEmployeeContributions = 0;
+    let totalEmployerContributions = 0;
+
+    for (let month = 1; month <= monthsToRetirement; month += 1) {
+      const employeeMonthlyContribution = currentMonthlySalary * EPF_EMPLOYEE_CONTRIBUTION_RATE;
+      const employerMonthlyContribution = currentMonthlySalary * EPF_EMPLOYER_CONTRIBUTION_RATE;
+      const monthlyContribution = employeeMonthlyContribution + employerMonthlyContribution;
+
+      totalEmployeeContributions += employeeMonthlyContribution;
+      totalEmployerContributions += employerMonthlyContribution;
+      totalContributions += monthlyContribution;
+      projectedSavings += monthlyContribution;
+      projectedSavings *= 1 + monthlyDividendRate;
+
+      if (month % 12 === 0) {
+        currentMonthlySalary *= 1 + incrementRate;
+      }
+    }
+
+    const targetAges = [30, 40, 50, 60];
+    const salaryMilestones = targetAges
+      .filter((targetAge) => {
+        if (targetAge === 30) {
+          return epfAge < 30;
+        }
+
+        return epfAge < targetAge;
+      })
+      .map((targetAge) => ({
+        age: targetAge,
+        salary: epfSalary * Math.pow(1 + incrementRate, targetAge - epfAge),
+      }));
 
     setEpfError('');
     setEpfResult({
-      monthlyContribution,
-      annualContribution: monthlyContribution * 12,
-      monthlyTakeHomeAfterEPF: epfSalary - monthlyContribution,
+      projectedSavingsAt60: projectedSavings,
+      totalContributions,
+      totalEmployeeContributions,
+      totalEmployerContributions,
+      estimatedDividends: projectedSavings - totalContributions,
+      yearsToRetirement: 60 - epfAge,
+      salaryMilestones,
     });
   };
 
   const resetEPFForm = () => {
     setEpfSalary(null);
-    setEpfRate(11);
+    setEpfIncrement(3);
+    setEpfDividend(6);
+    setEpfAge(null);
     setEpfResult(null);
     setEpfError('');
   };
@@ -132,7 +198,7 @@ export default function App({ activeTab }: AppProps) {
           </div>
 
           <h1>EPF Calculator</h1>
-          <p>Estimate your monthly and annual employee EPF contribution instantly.</p>
+          <p>Project your EPF savings at age 60 based on salary, growth, and dividend assumptions.</p>
         </section>
 
         <section className="grid app-content">
@@ -165,20 +231,59 @@ export default function App({ activeTab }: AppProps) {
                   />
                 </div>
 
+                <div className="grid">
+                  <div className="col-12 md:col-6">
+                    <div className="field mb-0">
+                      <label htmlFor="epf-increment" className="required-field">
+                        Yearly Increment (%)
+                      </label>
+                      <InputNumber
+                        id="epf-increment"
+                        value={epfIncrement}
+                        onChange={(event) => setEpfIncrement(event.value ?? null)}
+                        min={0}
+                        max={100}
+                        minFractionDigits={0}
+                        maxFractionDigits={2}
+                        placeholder="e.g. 3"
+                        suffix=" %"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-12 md:col-6">
+                    <div className="field mb-0">
+                      <label htmlFor="epf-dividend" className="required-field">
+                        Expected Yearly Dividend (%)
+                      </label>
+                      <InputNumber
+                        id="epf-dividend"
+                        value={epfDividend}
+                        onChange={(event) => setEpfDividend(event.value ?? null)}
+                        min={0}
+                        max={100}
+                        minFractionDigits={0}
+                        maxFractionDigits={2}
+                        placeholder="e.g. 6"
+                        suffix=" %"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="field mb-0">
-                  <label htmlFor="epf-rate" className="required-field">
-                    Employee EPF Rate (%)
+                  <label htmlFor="epf-age" className="required-field">
+                    Current Age
                   </label>
                   <InputNumber
-                    id="epf-rate"
-                    value={epfRate}
-                    onChange={(event) => setEpfRate(event.value ?? null)}
-                    min={1}
-                    max={100}
+                    id="epf-age"
+                    value={epfAge}
+                    onChange={(event) => setEpfAge(event.value ?? null)}
                     minFractionDigits={0}
-                    maxFractionDigits={2}
-                    placeholder="e.g. 11"
-                    suffix=" %"
+                    maxFractionDigits={0}
+                    placeholder="e.g. 30"
                     className="w-full"
                   />
                 </div>
@@ -186,10 +291,10 @@ export default function App({ activeTab }: AppProps) {
                 <div className="action-row">
                   <Button
                     type="submit"
-                    label="Calculate EPF"
+                    label="Project to Age 60"
                     icon="pi pi-calculator"
                     className="calculate-btn"
-                    disabled={!epfSalary || epfSalary <= 0}
+                    disabled={!epfSalary || epfSalary <= 0 || !epfAge}
                   />
                   <Button
                     type="button"
@@ -213,28 +318,70 @@ export default function App({ activeTab }: AppProps) {
               {!epfResult && (
                 <div className="empty-state">
                   <i className="pi pi-chart-bar"></i>
-                  <p>Enter salary and EPF rate to estimate your contribution.</p>
+                  <p>Enter your assumptions to estimate your EPF savings when you turn 60.</p>
                 </div>
               )}
 
               {epfResult && (
                 <div className="result-grid">
                   <article className="stat-card stat-card--accent">
-                    <span>Monthly EPF Contribution</span>
-                    <strong>RM {epfResult.monthlyContribution.toFixed(2)}</strong>
+                    <span>Projected EPF Savings at 60</span>
+                    <strong>
+                      RM {epfResult.projectedSavingsAt60.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </strong>
                   </article>
 
                   <article className="stat-card stat-card--green">
-                    <span>Monthly Salary After EPF</span>
-                    <strong>RM {epfResult.monthlyTakeHomeAfterEPF.toFixed(2)}</strong>
+                    <span>Years to Retirement</span>
+                    <strong>{epfResult.yearsToRetirement} years</strong>
                   </article>
 
                   <article className="deduction-card">
-                    <h3>Contribution Breakdown</h3>
+                    <h3>Projection Breakdown</h3>
                     <div className="deduction-row">
-                      <span>Annual EPF Contribution</span>
-                      <strong>RM {epfResult.annualContribution.toFixed(2)}</strong>
+                      <span>Employee Contributions (11%)</span>
+                      <strong>
+                        RM{' '}
+                        {epfResult.totalEmployeeContributions.toLocaleString('en-MY', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
                     </div>
+                    <div className="deduction-row">
+                      <span>Employer Contributions (13%)</span>
+                      <strong>
+                        RM{' '}
+                        {epfResult.totalEmployerContributions.toLocaleString('en-MY', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
+                    </div>
+                    <div className="deduction-row">
+                      <span>Total EPF Contributions (24%)</span>
+                      <strong>RM {epfResult.totalContributions.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </div>
+                    <div className="deduction-row">
+                      <span>Estimated Dividends Earned</span>
+                      <strong>RM {epfResult.estimatedDividends.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </div>
+                  </article>
+
+                  <article className="deduction-card">
+                    <h3>Projected Salary Milestones</h3>
+                    {epfResult.salaryMilestones.map((milestone) => (
+                      <div className="deduction-row" key={milestone.age}>
+                        <span>Salary at age {milestone.age}</span>
+                        <strong>
+                          RM{' '}
+                          {milestone.salary.toLocaleString('en-MY', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
+                      </div>
+                    ))}
                   </article>
                 </div>
               )}

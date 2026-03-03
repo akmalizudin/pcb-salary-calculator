@@ -88,6 +88,14 @@ body.theme-epf-body {
   color: var(--brand);
 }
 
+body.theme-pcb-body .header-brand i {
+  color: #0f766e;
+}
+
+body.theme-epf-body .header-brand i {
+  color: #0a4ea1;
+}
+
 .header-link {
   display: inline-flex;
   align-items: center;
@@ -349,11 +357,18 @@ body.theme-epf-body {
 }
 
 .deduction-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 190px);
   align-items: center;
+  column-gap: 1rem;
   padding: 0.4rem 0;
   border-bottom: 1px solid #edf1ef;
+}
+
+.deduction-row strong {
+  justify-self: end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .deduction-row:last-child {
@@ -471,5 +486,15 @@ body.theme-epf-body {
   .reset-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .deduction-row {
+    grid-template-columns: 1fr;
+    row-gap: 0.2rem;
+  }
+
+  .deduction-row strong {
+    justify-self: start;
+    text-align: left;
   }
 }
