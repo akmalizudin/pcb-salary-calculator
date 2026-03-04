@@ -1,73 +1,71 @@
-# PCB Salary Calculator (Monorepo)
+# PCB Salary Calculator
 
-A monorepo for a Malaysia salary planning tool with:
-- `frontend`: React + Vite UI for PCB and EPF calculators
-- `backend`: NestJS API (optional, retained in repo)
+Malaysia salary planning web app with:
+- PCB (monthly tax and deduction estimate)
+- EPF projection to age 60
+- About page with context and disclaimer
 
-## Project Structure
+## Live Demo
 
-```text
-.
-├── frontend/   # React app (PCB, EPF, About)
-└── backend/    # NestJS API (PCB endpoints)
-```
+`https://akmalizudin.github.io/pcb-salary-calculator/`
+
+## Current Architecture
+
+- Frontend-only for deployed app (React + Vite on GitHub Pages)
+- No backend is required for current PCB and EPF calculations
+- A NestJS backend folder is still in this repo, but optional
+
+## Features
+
+- PCB calculator (monthly PCB, EPF, SOCSO, EIS, net salary)
+- EPF long-term projection (salary growth + dividend assumptions)
+- Clean tabbed UI (`PCB`, `EPF`, `About`)
 
 ## Tech Stack
 
-- Frontend: React 19, TypeScript, Vite, PrimeReact
-- Backend: NestJS 11, TypeScript, class-validator
+- React 19
+- TypeScript
+- Vite
+- PrimeReact + PrimeFlex
 
-## Prerequisites
+## Run Locally
 
-- Node.js 20+
-- npm 10+
-
-## Quick Start
-
-Run frontend:
-
-1. Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Frontend runs on `http://localhost:5173`.
 
-2. Optional backend (not required for current calculator flow)
+App URL: `http://localhost:5173`
+
+## Build
+
 ```bash
-cd backend
-npm install
-npm run start:dev
+cd frontend
+npm run build
 ```
 
-## What the App Includes
+## Deployment (GitHub Pages)
 
-- PCB calculator (monthly tax and deductions summary)
-- EPF projection calculator (to age 60 with increment/dividend assumptions)
-- About page (purpose, references, disclaimer)
+Deployment is automated via:
 
-## Notes
+`.github/workflows/deploy-frontend-pages.yml`
 
-- PCB and EPF calculations are now handled directly in the frontend.
-- Backend remains in this monorepo but is optional for the current UI flow.
+When you push to `main`, GitHub Actions will:
+1. Install frontend dependencies
+2. Build the Vite app
+3. Publish `frontend/dist` to GitHub Pages
 
-## Deploy Frontend to GitHub Pages
+## Optional Backend (Not Required)
 
-This repo includes a workflow at `.github/workflows/deploy-frontend-pages.yml` that deploys `frontend/dist` to GitHub Pages when you push to `main`.
+`backend/` contains a NestJS implementation kept for reference/extension.
+You only need it if you want server-side APIs in the future.
 
-1. Push this repository to GitHub (branch: `main`).
-2. In GitHub, go to `Settings > Pages`.
-3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
-4. Push to `main` again (or run the workflow manually from `Actions`).
+## Disclaimer
 
-Your app URL will be:
-
-`https://<your-github-username>.github.io/pcb-salary-calculator/`
-
-Important:
-- GitHub Pages deployment is enough for this calculator because PCB and EPF logic run in the frontend.
+This app is for estimation and planning only, not official tax or financial advice.
+Actual payroll and statutory deductions may differ based on latest policy and personal details.
 
 ## License
 
-This project is for internal/personal use unless you define a separate license.
+For internal/personal use unless a separate license is added.

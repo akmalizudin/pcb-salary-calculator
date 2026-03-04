@@ -17,6 +17,9 @@ type EPFResult = {
   totalEmployerContributions: number;
   estimatedDividends: number;
   yearsToRetirement: number;
+  bonusMode: 'exact' | 'months' | 'none';
+  yearlyBonusAmount: number;
+  bonusMonths: number;
   salaryMilestones: Array<{
     age: number;
     salary: number;
@@ -36,6 +39,8 @@ export default function App({ activeTab }: AppProps) {
   const [epfSalary, setEpfSalary] = useState<number | null>(null);
   const [epfIncrement, setEpfIncrement] = useState<number | null>(3);
   const [epfDividend, setEpfDividend] = useState<number | null>(6);
+  const [epfBonusMonths, setEpfBonusMonths] = useState<number | null>(null);
+  const [epfBonusAmount, setEpfBonusAmount] = useState<number | null>(null);
   const [epfAge, setEpfAge] = useState<number | null>(null);
   const [epfResult, setEpfResult] = useState<EPFResult | null>(null);
   const [epfError, setEpfError] = useState('');
@@ -102,8 +107,24 @@ export default function App({ activeTab }: AppProps) {
       return;
     }
 
+    if ((epfBonusMonths ?? 0) < 0) {
+      setEpfError('Please enter a valid bonus months value (0 or more)');
+      return;
+    }
+
+    if ((epfBonusAmount ?? 0) < 0) {
+      setEpfError('Please enter a valid yearly bonus amount (0 or more)');
+      return;
+    }
+
     const monthsToRetirement = (60 - epfAge) * 12;
     const monthlyDividendRate = Math.pow(1 + dividendRate, 1 / 12) - 1;
+    const bonusMode: EPFResult['bonusMode'] = epfBonusAmount
+      ? 'exact'
+      : epfBonusMonths
+        ? 'months'
+        : 'none';
+    const yearlyBonusAmount = epfBonusAmount ?? 0;
 
     let currentMonthlySalary = epfSalary;
     let projectedSavings = 0;
@@ -120,6 +141,19 @@ export default function App({ activeTab }: AppProps) {
       totalEmployerContributions += employerMonthlyContribution;
       totalContributions += monthlyContribution;
       projectedSavings += monthlyContribution;
+
+      if (month % 12 === 0) {
+        const annualBonus = epfBonusAmount ?? currentMonthlySalary * (epfBonusMonths ?? 0);
+        const employeeBonusContribution = annualBonus * EPF_EMPLOYEE_CONTRIBUTION_RATE;
+        const employerBonusContribution = annualBonus * EPF_EMPLOYER_CONTRIBUTION_RATE;
+        const bonusContribution = employeeBonusContribution + employerBonusContribution;
+
+        totalEmployeeContributions += employeeBonusContribution;
+        totalEmployerContributions += employerBonusContribution;
+        totalContributions += bonusContribution;
+        projectedSavings += bonusContribution;
+      }
+
       projectedSavings *= 1 + monthlyDividendRate;
 
       if (month % 12 === 0) {
@@ -149,6 +183,9 @@ export default function App({ activeTab }: AppProps) {
       totalEmployerContributions,
       estimatedDividends: projectedSavings - totalContributions,
       yearsToRetirement: 60 - epfAge,
+      bonusMode,
+      yearlyBonusAmount,
+      bonusMonths: epfBonusMonths ?? 0,
       salaryMilestones,
     });
   };
@@ -157,6 +194,8 @@ export default function App({ activeTab }: AppProps) {
     setEpfSalary(null);
     setEpfIncrement(3);
     setEpfDividend(6);
+    setEpfBonusMonths(null);
+    setEpfBonusAmount(null);
     setEpfAge(null);
     setEpfResult(null);
     setEpfError('');
@@ -180,20 +219,20 @@ export default function App({ activeTab }: AppProps) {
             <Card className="surface-card about-article">
               <h2>About This Calculator</h2>
               <p>
-                This page provides two simple tools for salary planning in Malaysia.
-                The PCB calculator estimates monthly deductions, and the EPF calculator
-                projects long-term savings to age 60 based on your salary growth and dividend assumptions.
+                This page provides two simple tools for salary planning in Malaysia. The PCB
+                calculator estimates monthly deductions, and the EPF calculator projects long-term
+                savings to age 60 based on your salary growth and dividend assumptions.
               </p>
               <h3>References</h3>
               <p>
-                The calculations are based on public guidance and schedules from
-                LHDN (for PCB) and KWSP/EPF (for contribution rates and dividend context),
-                together with the assumptions you enter in the form.
+                The calculations are based on public guidance and schedules from LHDN (for PCB) and
+                KWSP/EPF (for contribution rates and dividend context), together with the
+                assumptions you enter in the form.
               </p>
               <h3>Disclaimer</h3>
               <p>
-                This tool is for estimation and planning only. It is not official tax or financial advice.
-                Actual payroll, PCB, and EPF figures may differ depending on policy updates,
+                This tool is for estimation and planning only. It is not official tax or financial
+                advice. Actual payroll, PCB, and EPF figures may differ depending on policy updates,
                 payroll settings, reliefs, and personal employment details.
               </p>
             </Card>
@@ -202,7 +241,8 @@ export default function App({ activeTab }: AppProps) {
 
         <footer className="app-footer">
           <small>
-            &copy; 2026 PCBCalculator.my. Independent calculator, not affiliated with LHDN Malaysia or KWSP.
+            &copy; 2026 PCBCalculator.my. Independent calculator, not affiliated with LHDN Malaysia
+            or KWSP.
           </small>
         </footer>
       </main>
@@ -219,7 +259,9 @@ export default function App({ activeTab }: AppProps) {
           </div>
 
           <h1>EPF Calculator</h1>
-          <p>Project your EPF savings at age 60 based on salary, growth, and dividend assumptions.</p>
+          <p>
+            Project your EPF savings at age 60 based on salary, growth, and dividend assumptions.
+          </p>
         </section>
 
         <section className="grid app-content">
@@ -294,37 +336,57 @@ export default function App({ activeTab }: AppProps) {
                   </div>
                 </div>
 
-                <div className="field mb-0">
-                  <label htmlFor="epf-age" className="required-field">
-                    Current Age
-                  </label>
-                  <InputNumber
-                    id="epf-age"
-                    value={epfAge}
-                    onChange={(event) => setEpfAge(event.value ?? null)}
-                    minFractionDigits={0}
-                    maxFractionDigits={0}
-                    placeholder="e.g. 30"
-                    className="w-full"
-                  />
-                </div>
+                <div className="grid">
+                  <div className="col-12 md:col-6">
+                    <div className="field mb-0">
+                      <label htmlFor="epf-age" className="required-field">
+                        Current Age
+                      </label>
+                      <InputNumber
+                        id="epf-age"
+                        value={epfAge}
+                        onChange={(event) => setEpfAge(event.value ?? null)}
+                        minFractionDigits={0}
+                        maxFractionDigits={0}
+                        placeholder="e.g. 30"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-12 md:col-6">
+                    <div className="field mb-0">
+                      <label htmlFor="epf-bonus-months">Yearly Bonus (Months of Salary)</label>
+                      <InputNumber
+                        id="epf-bonus-months"
+                        value={epfBonusMonths}
+                        onChange={(event) => setEpfBonusMonths(event.value ?? null)}
+                        min={0}
+                        minFractionDigits={0}
+                        maxFractionDigits={2}
+                        placeholder="e.g. 2.5"
+                        suffix=" months"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
 
-                <div className="action-row">
-                  <Button
-                    type="submit"
-                    label="Project to Age 60"
-                    icon="pi pi-calculator"
-                    className="calculate-btn"
-                    disabled={!epfSalary || epfSalary <= 0 || !epfAge}
-                  />
-                  <Button
-                    type="button"
-                    label="Reset"
-                    icon="pi pi-refresh"
-                    text
-                    className="reset-btn"
-                    onClick={resetEPFForm}
-                  />
+                  <div className="action-row">
+                    <Button
+                      type="submit"
+                      label="Project to Age 60"
+                      icon="pi pi-calculator"
+                      className="calculate-btn"
+                      disabled={!epfSalary || epfSalary <= 0 || !epfAge}
+                    />
+                    <Button
+                      type="button"
+                      label="Reset"
+                      icon="pi pi-refresh"
+                      text
+                      className="reset-btn"
+                      onClick={resetEPFForm}
+                    />
+                  </div>
                 </div>
               </form>
 
@@ -348,7 +410,11 @@ export default function App({ activeTab }: AppProps) {
                   <article className="stat-card stat-card--accent">
                     <span>Projected EPF Savings at 60</span>
                     <strong>
-                      RM {epfResult.projectedSavingsAt60.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      RM{' '}
+                      {epfResult.projectedSavingsAt60.toLocaleString('en-MY', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </strong>
                   </article>
 
@@ -381,11 +447,33 @@ export default function App({ activeTab }: AppProps) {
                     </div>
                     <div className="deduction-row">
                       <span>Total EPF Contributions (24%)</span>
-                      <strong>RM {epfResult.totalContributions.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      <strong>
+                        RM{' '}
+                        {epfResult.totalContributions.toLocaleString('en-MY', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
                     </div>
                     <div className="deduction-row">
                       <span>Estimated Dividends Earned</span>
-                      <strong>RM {epfResult.estimatedDividends.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      <strong>
+                        RM{' '}
+                        {epfResult.estimatedDividends.toLocaleString('en-MY', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
+                    </div>
+                    <div className="deduction-row">
+                      <span>Bonus Assumption</span>
+                      <strong>
+                        {epfResult.bonusMode === 'exact' &&
+                          `RM ${epfResult.yearlyBonusAmount.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/year`}
+                        {epfResult.bonusMode === 'months' &&
+                          `${epfResult.bonusMonths.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} months/year`}
+                        {epfResult.bonusMode === 'none' && 'None'}
+                      </strong>
                     </div>
                   </article>
 
@@ -428,9 +516,7 @@ export default function App({ activeTab }: AppProps) {
         </div>
 
         <h1>PCB Salary Calculator</h1>
-        <p>
-          Fast monthly tax estimates for PCB, EPF, SOCSO, and EIS in one streamlined view.
-        </p>
+        <p>Fast monthly tax estimates for PCB, EPF, SOCSO, and EIS in one streamlined view.</p>
       </section>
 
       <section className="grid app-content">
@@ -438,7 +524,9 @@ export default function App({ activeTab }: AppProps) {
           <Card className="surface-card calculator-card">
             <div className="card-title-row">
               <h2>Income Inputs</h2>
-              <span className="income-pill">Estimated Annual Gross: RM {totalIncome.toFixed(2)}</span>
+              <span className="income-pill">
+                Estimated Annual Gross: RM {totalIncome.toFixed(2)}
+              </span>
             </div>
 
             <form
@@ -499,23 +587,23 @@ export default function App({ activeTab }: AppProps) {
               </div>
 
               <div className="action-row">
-                  <Button
-                    type="submit"
-                    label="Calculate PCB"
-                    icon="pi pi-calculator"
-                    className="calculate-btn"
-                    disabled={!salary || salary <= 0}
-                  />
-                  <Button
-                    type="button"
-                    label="Reset"
-                    icon="pi pi-refresh"
-                    text
-                    className="reset-btn"
-                    onClick={resetPCBForm}
-                  />
-                </div>
-              </form>
+                <Button
+                  type="submit"
+                  label="Calculate PCB"
+                  icon="pi pi-calculator"
+                  className="calculate-btn"
+                  disabled={!salary || salary <= 0}
+                />
+                <Button
+                  type="button"
+                  label="Reset"
+                  icon="pi pi-refresh"
+                  text
+                  className="reset-btn"
+                  onClick={resetPCBForm}
+                />
+              </div>
+            </form>
 
             {pcbError && <p className="error">{pcbError}</p>}
           </Card>
