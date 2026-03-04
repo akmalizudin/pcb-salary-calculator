@@ -1,4 +1,4 @@
-# PCB Salary Calculator
+# GajiPlanner.my
 
 Malaysia salary planning web app with:
 - PCB (monthly tax and deduction estimate)
@@ -7,7 +7,7 @@ Malaysia salary planning web app with:
 
 ## Live Demo
 
-`https://akmalizudin.github.io/pcb-salary-calculator/`
+[GajiPlanner.my (GitHub Pages)](https://akmalizudin.github.io/pcb-salary-calculator/)
 
 ## Current Architecture
 
@@ -48,18 +48,7 @@ npm run build
 ## Deployment (GitHub Pages)
 
 Deployment is automated via:
-
 `.github/workflows/deploy-frontend-pages.yml`
-
-When you push to `main`, GitHub Actions will:
-1. Install frontend dependencies
-2. Build the Vite app
-3. Publish `frontend/dist` to GitHub Pages
-
-## Optional Backend (Not Required)
-
-`backend/` contains a NestJS implementation kept for reference/extension.
-You only need it if you want server-side APIs in the future.
 
 ## Disclaimer
 

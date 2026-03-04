@@ -10,7 +10,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
     <header className="header">
       <div className="header-brand">
         <i className="pi pi-wallet" aria-hidden="true"></i>
-        <span>PCBCalculator.my</span>
+        <span>GajiPlanner.my</span>
       </div>
 
       <div className="header-link" role="tablist" aria-label="Calculator tabs">
