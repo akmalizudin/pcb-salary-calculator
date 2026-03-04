@@ -2,24 +2,12 @@ import { useMemo, useState } from 'react';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { calculatePcb, type PcbResult } from './utils/calculatePcb';
 
 type CalculatorTab = 'pcb' | 'epf' | 'about';
 
 type AppProps = {
   activeTab: CalculatorTab;
-};
-
-type PCBResult = {
-  monthlyPCB: number;
-  baseMonthlyPcb: number;
-  additionalBonusPcb: number;
-  netSalary: number;
-  epf: number;
-  socso: number;
-  eis: number;
-  totalDeductions: number;
-  currentMonthGross?: number;
 };
 
 type EPFResult = {
@@ -38,13 +26,11 @@ type EPFResult = {
 export default function App({ activeTab }: AppProps) {
   const EPF_EMPLOYEE_CONTRIBUTION_RATE = 0.11;
   const EPF_EMPLOYER_CONTRIBUTION_RATE = 0.13;
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
   const [salary, setSalary] = useState<number | null>(null);
   const [allowance, setAllowance] = useState<number | null>(null);
   const [bonus, setBonus] = useState<number | null>(null);
-  const [pcbResult, setPcbResult] = useState<PCBResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [pcbResult, setPcbResult] = useState<PcbResult | null>(null);
   const [pcbError, setPcbError] = useState('');
 
   const [epfSalary, setEpfSalary] = useState<number | null>(null);
@@ -64,37 +50,24 @@ export default function App({ activeTab }: AppProps) {
     [salary, allowance, bonus],
   );
 
-  const calculatePCB = async () => {
+  const calculatePCB = () => {
     if (!salary || salary <= 0) {
       setPcbError('Please enter a valid monthly salary');
       return;
     }
 
-    setLoading(true);
     setPcbError('');
     setPcbResult(null);
 
     try {
-      const res = await fetch(`${apiBaseUrl}/pcb/calculate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          monthlySalary: salary,
-          allowance: allowance ?? 0,
-          bonus: bonus ?? 0,
-        }),
+      const result = calculatePcb({
+        monthlySalary: salary,
+        allowance: allowance ?? 0,
+        bonus: bonus ?? 0,
       });
-
-      if (!res.ok) {
-        throw new Error('API error');
-      }
-
-      const data: PCBResult = await res.json();
-      setPcbResult(data);
+      setPcbResult(result);
     } catch {
-      setPcbError('Failed to calculate PCB. Please check backend connection.');
-    } finally {
-      setLoading(false);
+      setPcbError('Failed to calculate PCB. Please check input values.');
     }
   };
 
@@ -526,30 +499,23 @@ export default function App({ activeTab }: AppProps) {
               </div>
 
               <div className="action-row">
-                <Button
-                  type="submit"
-                  label="Calculate PCB"
-                  icon="pi pi-calculator"
-                  className="calculate-btn"
-                  disabled={loading || !salary || salary <= 0}
-                />
-                <Button
-                  type="button"
-                  label="Reset"
-                  icon="pi pi-refresh"
-                  text
-                  className="reset-btn"
-                  onClick={resetPCBForm}
-                  disabled={loading}
-                />
-              </div>
-            </form>
-
-            {loading && (
-              <div className="loading-wrap">
-                <ProgressSpinner strokeWidth="5" />
-              </div>
-            )}
+                  <Button
+                    type="submit"
+                    label="Calculate PCB"
+                    icon="pi pi-calculator"
+                    className="calculate-btn"
+                    disabled={!salary || salary <= 0}
+                  />
+                  <Button
+                    type="button"
+                    label="Reset"
+                    icon="pi pi-refresh"
+                    text
+                    className="reset-btn"
+                    onClick={resetPCBForm}
+                  />
+                </div>
+              </form>
 
             {pcbError && <p className="error">{pcbError}</p>}
           </Card>
@@ -559,7 +525,7 @@ export default function App({ activeTab }: AppProps) {
           <Card className="surface-card summary-card">
             <h2>Calculation Summary</h2>
 
-            {!pcbResult && !loading && (
+            {!pcbResult && (
               <div className="empty-state">
                 <i className="pi pi-chart-bar"></i>
                 <p>Enter your salary and run calculation to see deductions and net pay.</p>
