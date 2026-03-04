@@ -38,6 +38,7 @@ type EPFResult = {
 export default function App({ activeTab }: AppProps) {
   const EPF_EMPLOYEE_CONTRIBUTION_RATE = 0.11;
   const EPF_EMPLOYER_CONTRIBUTION_RATE = 0.13;
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
   const [salary, setSalary] = useState<number | null>(null);
   const [allowance, setAllowance] = useState<number | null>(null);
@@ -74,7 +75,7 @@ export default function App({ activeTab }: AppProps) {
     setPcbResult(null);
 
     try {
-      const res = await fetch('http://localhost:3000/pcb/calculate', {
+      const res = await fetch(`${apiBaseUrl}/pcb/calculate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

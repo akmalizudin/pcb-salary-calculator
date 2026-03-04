@@ -42,5 +42,6 @@ npm run preview
 
 ## Notes
 
-- Expects backend API at `http://localhost:3000`.
+- Expects backend API at `http://localhost:3000` by default.
+- You can override API base URL with `VITE_API_BASE_URL` (for example in GitHub Actions/Pages deployment).
 - Main API used: `POST /pcb/calculate`.
