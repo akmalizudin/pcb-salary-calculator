@@ -36,8 +36,8 @@ export default function PcbTab({
     <main className="theme-pcb">
       <section className="hero-section">
         <div className="hero-chip">
-          <i className="pi pi-bolt"></i>
-          <span>Malaysia Salary & EPF Companion</span>
+          <i className="pi pi-receipt"></i>
+          <span>PCB Tax & Payroll Estimator</span>
         </div>
 
         <h1>PCB Calculator</h1>
@@ -48,7 +48,7 @@ export default function PcbTab({
         <div className="col-12 lg:col-7">
           <Card className="surface-card calculator-card">
             <div className="card-title-row">
-              <h2>Income Inputs</h2>
+              {/* <h2>Income Inputs</h2> */}
               <span className="income-pill">Estimated Annual Gross: RM {totalIncome.toFixed(2)}</span>
             </div>
 

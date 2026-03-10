@@ -40,8 +40,8 @@ export default function EpfTab({
     <main className="theme-epf">
       <section className="hero-section">
         <div className="hero-chip">
-          <i className="pi pi-bolt"></i>
-          <span>Malaysia Salary & EPF Companion</span>
+          <i className="pi pi-chart-line"></i>
+          <span>EPF Retirement Projection Planner</span>
         </div>
 
         <h1>EPF Calculator</h1>
@@ -52,7 +52,7 @@ export default function EpfTab({
         <div className="col-12 lg:col-7">
           <Card className="surface-card calculator-card">
             <div className="card-title-row">
-              <h2>EPF Inputs</h2>
+              {/* <h2>EPF Inputs</h2> */}
             </div>
 
             <form
@@ -258,6 +258,37 @@ export default function EpfTab({
                       {epfResult.bonusMode === 'none' && 'None'}
                     </strong>
                   </div>
+                </article>
+
+                <article className="deduction-card">
+                  <h3>Projected Savings Milestones</h3>
+                  {epfResult.savingsMilestones.map((milestone, index) => {
+                    const previousMilestone = index > 0 ? epfResult.savingsMilestones[index - 1] : null;
+                    const changePercent =
+                      previousMilestone && previousMilestone.savings > 0
+                        ? ((milestone.savings - previousMilestone.savings) /
+                            previousMilestone.savings) *
+                          100
+                        : null;
+
+                    return (
+                      <div className="deduction-row" key={milestone.age}>
+                        <span>EPF savings at age {milestone.age}</span>
+                        <strong>
+                          RM{' '}
+                          {milestone.savings.toLocaleString('en-MY', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                          {changePercent !== null && (
+                            <span className="milestone-change">
+                              {`${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}% vs age ${previousMilestone?.age}`}
+                            </span>
+                          )}
+                        </strong>
+                      </div>
+                    );
+                  })}
                 </article>
 
                 <article className="deduction-card">

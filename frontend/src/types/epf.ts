@@ -11,4 +11,8 @@ export type EPFResult = {
     age: number;
     salary: number;
   }>;
+  savingsMilestones: Array<{
+    age: number;
+    savings: number;
+  }>;
 };

@@ -4,9 +4,10 @@ import type { EPFResult } from './types/epf';
 import { calculateEpf } from './utils/calculateEpf';
 import AboutTab from './components/tabs/AboutTab';
 import EpfTab from './components/tabs/EpfTab';
+import LoanTab from './components/tabs/LoanTab';
 import PcbTab from './components/tabs/PcbTab';
 
-type CalculatorTab = 'pcb' | 'epf' | 'about';
+type CalculatorTab = 'pcb' | 'epf' | 'loan' | 'about';
 
 type AppProps = {
   activeTab: CalculatorTab;
@@ -118,6 +119,10 @@ export default function App({ activeTab }: AppProps) {
         onReset={resetEPFForm}
       />
     );
+  }
+
+  if (activeTab === 'loan') {
+    return <LoanTab />;
   }
 
   return (

@@ -78,6 +78,10 @@ export function calculateEpf(input: CalculateEpfInput): CalculateEpfOutput {
   let totalEmployeeContributions = 0;
   let totalEmployerContributions = 0;
 
+  const targetAges = [30, 40, 50, 60];
+  const filteredMilestoneAges = targetAges.filter((targetAge) => currentAge < targetAge);
+  const savingsByAge = new Map<number, number>();
+
   for (let month = 1; month <= monthsToRetirement; month += 1) {
     const employeeMonthlyContribution = currentMonthlySalary * EPF_EMPLOYEE_CONTRIBUTION_RATE;
     const employerMonthlyContribution = currentMonthlySalary * EPF_EMPLOYER_CONTRIBUTION_RATE;
@@ -103,23 +107,23 @@ export function calculateEpf(input: CalculateEpfInput): CalculateEpfOutput {
     projectedSavings *= 1 + monthlyDividendRate;
 
     if (month % 12 === 0) {
+      const ageAtYearEnd = currentAge + month / 12;
+      if (filteredMilestoneAges.includes(ageAtYearEnd)) {
+        savingsByAge.set(ageAtYearEnd, projectedSavings);
+      }
       currentMonthlySalary *= 1 + incrementRate;
     }
   }
 
-  const targetAges = [30, 40, 50, 60];
-  const salaryMilestones = targetAges
-    .filter((targetAge) => {
-      if (targetAge === 30) {
-        return currentAge < 30;
-      }
-
-      return currentAge < targetAge;
-    })
+  const salaryMilestones = filteredMilestoneAges
     .map((targetAge) => ({
       age: targetAge,
       salary: monthlySalary * Math.pow(1 + incrementRate, targetAge - currentAge),
     }));
+  const savingsMilestones = filteredMilestoneAges.map((targetAge) => ({
+    age: targetAge,
+    savings: savingsByAge.get(targetAge) ?? projectedSavings,
+  }));
 
   return {
     result: {
@@ -132,6 +136,7 @@ export function calculateEpf(input: CalculateEpfInput): CalculateEpfOutput {
       bonusMode,
       bonusMonths: normalizedBonusMonths,
       salaryMilestones,
+      savingsMilestones,
     },
     error: '',
   };
